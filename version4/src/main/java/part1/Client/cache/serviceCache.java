@@ -27,6 +27,16 @@ public class serviceCache {
             cache.put(serviceName,addressList);
         }
     }
+    //修改服务地址
+    public void replaceServiceAddress(String serviceName,String oldAddress,String newAddress){
+        if(cache.containsKey(serviceName)){
+            List<String> addressList=cache.get(serviceName);
+            addressList.remove(oldAddress);
+            addressList.add(newAddress);
+        }else {
+            System.out.println("修改失败，服务不存在");
+        }
+    }
     //从缓存中取服务地址列表
     public List<String> getServiceListFromCache(String serviceName){
         if(!cache.containsKey(serviceName)) {
