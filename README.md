@@ -7,9 +7,7 @@
 
 1.先安装并开启zookeeper
 
-[windows 环境下zookeeper的安装与配置]: https://blog.csdn.net/fisherish/article/details/118974827?spm=1001.2014.3001.5506
-
-
+安装参考：https://blog.csdn.net/fisherish/article/details/118974827?spm=1001.2014.3001.5506
 
 2.运行Server包下的TestServer,再运行Client包下的TestClient
 
