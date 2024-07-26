@@ -39,6 +39,7 @@ public class NettyRPCServerHandler extends SimpleChannelInboundHandler<RpcReques
         RateLimit rateLimit=serviceProvider.getRateLimitProvider().getRateLimit(interfaceName);
         if(!rateLimit.getToken()){
             //如果获取令牌失败，进行限流降级，快速返回结果
+            System.out.println("服务限流！！");
             return RpcResponse.fail();
         }
 

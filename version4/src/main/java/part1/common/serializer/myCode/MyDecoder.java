@@ -4,6 +4,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import part1.common.Message.MessageType;
+import part1.common.Message.RpcResponse;
 import part1.common.serializer.mySerializer.Serializer;
 
 import java.util.List;
@@ -35,7 +36,9 @@ public class MyDecoder extends ByteToMessageDecoder {
         //4.读取序列化数组
         byte[] bytes=new byte[length];
         in.readBytes(bytes);
+        System.out.println("bytes==="+new String(bytes));
         Object deserialize= serializer.deserialize(bytes, messageType);
+
         out.add(deserialize);
     }
 }
