@@ -52,7 +52,7 @@ public class ClientProxy implements InvocationHandler {
         //后续添加逻辑：为保持幂等性，只对白名单上的服务进行重试
         if (serviceCenter.checkRetry(request.getInterfaceName())){
             //调用retry框架进行重试操作
-            response=new guavaRetry().sendServiceWithRetry(request,rpcClient);
+            response = new guavaRetry().sendServiceWithRetry(request, rpcClient);
         }else {
             //只调用一次
             response= rpcClient.sendRequest(request);
