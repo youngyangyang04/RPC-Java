@@ -16,8 +16,11 @@ public class TestClient {
     public static void main(String[] args) throws InterruptedException {
         ClientProxy clientProxy=new ClientProxy();
         UserService proxy=clientProxy.getProxy(UserService.class);
-        for(int i = 0; i < 15; i++) {
+        for(int i = 0; i < 120; i++) {
             Integer i1 = i;
+            if (i%30==0) {
+                Thread.sleep(10000);
+            }
             new Thread(()->{
                 try{
                     User user = proxy.getUserByUserId(i1);

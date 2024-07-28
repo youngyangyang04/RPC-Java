@@ -30,6 +30,7 @@ public class CircuitBreaker {
     //查看当前熔断器是否允许请求通过
     public synchronized boolean allowRequest() {
         long currentTime = System.currentTimeMillis();
+        System.out.println("熔断swtich之前!!!!!!!+failureNum=="+failureCount);
         switch (state) {
             case OPEN:
                 if (currentTime - lastFailureTime > retryTimePeriod) {
@@ -37,6 +38,7 @@ public class CircuitBreaker {
                     resetCounts();
                     return true;
                 }
+                System.out.println("熔断生效!!!!!!!");
                 return false;
             case HALF_OPEN:
                 requestCount.incrementAndGet();
@@ -61,6 +63,7 @@ public class CircuitBreaker {
     //记录失败
     public synchronized void recordFailure() {
         failureCount.incrementAndGet();
+        System.out.println("记录失败!!!!!!!失败次数"+failureCount);
         lastFailureTime = System.currentTimeMillis();
         if (state == CircuitBreakerState.HALF_OPEN) {
             state = CircuitBreakerState.OPEN;
