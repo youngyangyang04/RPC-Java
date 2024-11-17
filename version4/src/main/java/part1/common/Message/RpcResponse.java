@@ -1,20 +1,18 @@
 package part1.common.Message;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.io.Serializable;
 
 /**
- * @author wxx
  * @version 1.0
  * @create 2024/2/1 19:18
  */
 @NoArgsConstructor
 @AllArgsConstructor
-@Data
+@Getter
+@Setter
+@ToString
 @Builder
 public class RpcResponse implements Serializable {
     //状态信息

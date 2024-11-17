@@ -3,7 +3,6 @@ package part1.common.serializer.mySerializer;
 import java.io.*;
 
 /**
- * @author wxx
  * @version 1.0
  * @create 2024/6/2 22:36
  */
@@ -51,4 +50,3 @@ public class ObjectSerializer implements Serializer {
         return 0;
     }
 }
-

@@ -1,12 +1,11 @@
 package part1.Client.circuitBreaker;
 
-/**
- * @author wxx
- * @version 1.0
- * @create 2024/7/2 21:49
- */
+
+import lombok.extern.slf4j.Slf4j;
+
 import java.util.concurrent.atomic.AtomicInteger;
 
+@Slf4j
 public class CircuitBreaker {
     //当前状态
     private CircuitBreakerState state = CircuitBreakerState.CLOSED;
@@ -30,7 +29,7 @@ public class CircuitBreaker {
     //查看当前熔断器是否允许请求通过
     public synchronized boolean allowRequest() {
         long currentTime = System.currentTimeMillis();
-        System.out.println("熔断swtich之前!!!!!!!+failureNum=="+failureCount);
+        log.info("熔断switch之前!!!!!!!失败次数=="+failureCount);
         switch (state) {
             case OPEN:
                 if (currentTime - lastFailureTime > retryTimePeriod) {

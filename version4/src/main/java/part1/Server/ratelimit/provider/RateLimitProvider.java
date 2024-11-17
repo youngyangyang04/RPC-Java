@@ -7,7 +7,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * @author wxx
  * @version 1.0
  * @create 2024/7/2 1:45
  */
@@ -16,7 +15,8 @@ public class RateLimitProvider {
 
     public RateLimit getRateLimit(String interfaceName){
         if(!rateLimitMap.containsKey(interfaceName)){
-            RateLimit rateLimit=new TokenBucketRateLimitImpl(100,10);
+            // 默认设定 令牌产生速率:100ms  容量:10
+            RateLimit rateLimit = new TokenBucketRateLimitImpl(100,10);
             rateLimitMap.put(interfaceName,rateLimit);
             return rateLimit;
         }

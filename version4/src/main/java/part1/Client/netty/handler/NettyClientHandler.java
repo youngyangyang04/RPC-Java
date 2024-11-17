@@ -5,11 +5,7 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.util.AttributeKey;
 import part1.common.Message.RpcResponse;
 
-/**
- * @author wxx
- * @version 1.0
- * @create 2024/2/26 17:29
- */
+
 public class NettyClientHandler extends SimpleChannelInboundHandler<RpcResponse> {
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, RpcResponse response) throws Exception {

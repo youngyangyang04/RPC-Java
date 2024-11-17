@@ -1,21 +1,22 @@
 package part1.Client.serviceCenter;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
-import part1.Client.serviceCenter.ZkWatcher.watchZK;
 import part1.Client.cache.serviceCache;
+import part1.Client.serviceCenter.ZkWatcher.watchZK;
 import part1.Client.serviceCenter.balance.impl.ConsistencyHashBalance;
+import part1.common.Message.RpcRequest;
 
 import java.net.InetSocketAddress;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
-/**
- * @author wxx
- * @version 1.0
- * @create 2024/5/3 21:41
- */
+@Slf4j
 public class ZKServiceCenter implements ServiceCenter{
     // curator 提供的zookeeper客户端
     private CuratorFramework client;
@@ -36,7 +37,7 @@ public class ZKServiceCenter implements ServiceCenter{
         this.client = CuratorFrameworkFactory.builder().connectString("127.0.0.1:2181")
                 .sessionTimeoutMs(40000).retryPolicy(policy).namespace(ROOT_PATH).build();
         this.client.start();
-        System.out.println("zookeeper 连接成功");
+        log.info("zookeeper 连接成功");
         //初始化本地缓存
         cache=new serviceCache();
         //加入zookeeper事件监听器
@@ -55,7 +56,7 @@ public class ZKServiceCenter implements ServiceCenter{
             if(addressList==null) {
                 addressList=client.getChildren().forPath("/" + serviceName);
             }
-            // 负载均衡得到地址
+            // 负载均衡得到地址（要先解析得到地址）
             String address = new ConsistencyHashBalance().balance(addressList);
             return parseAddress(address);
         } catch (Exception e) {
@@ -63,21 +64,50 @@ public class ZKServiceCenter implements ServiceCenter{
         }
         return null;
     }
-    //
-    public boolean checkRetry(String serviceName) {
+
+    /**
+     * 解析得到地址集合
+     * @param addressList
+     * @return
+     */
+    public List<String> getAddressList(List<String> addressList) {
+        return addressList.stream().map(a -> a.split("-")[0]).collect(Collectors.toList());
+    }
+
+
+    // TODO 是否可重试的校验修改为 从zoo节点中的注解信息获取
+    public boolean checkRetry(RpcRequest rpcRequest) {
         boolean canRetry =false;
         try {
-            List<String> serviceList = client.getChildren().forPath("/" + RETRY);
-            for(String s:serviceList){
-                if(s.equals(serviceName)){
-                    System.out.println("服务"+serviceName+"在白名单上，可进行重试");
-                    canRetry=true;
-                }
-            }
+            List<String> serviceList = client.getChildren()
+                    .forPath("/" + rpcRequest.getInterfaceName() + "." + rpcRequest.getReferences().version());
+//            for(String s:serviceList){
+//                if(s.equals(serviceName)){
+//                    log.info("服务"+serviceName+"在白名单上，可进行重试");
+//                    canRetry=true;
+//                }
+//            }
+            String serviceInfo = serviceList.get(0).split("-")[1];
+            Map<String, String> infoMap = convertStringToHashMap(serviceInfo);
+            return infoMap.get("canRetry").equals("true");
         }catch (Exception e) {
             e.printStackTrace();
         }
         return canRetry;
+    }
+    public static Map<String, String> convertStringToHashMap(String str) {
+        Map<String, String> map = new HashMap<>();
+        if (str != null && !str.isEmpty()) {
+            str = str.replace("{","").replace("}","");
+            String[] pairs = str.split(",");
+            for (String pair : pairs) {
+                String[] keyValue = pair.split("=");
+                if (keyValue.length == 2) {
+                    map.put(keyValue[0].trim(), keyValue[1].trim());
+                }
+            }
+        }
+        return map;
     }
     // 地址 -> XXX.XXX.XXX.XXX:port 字符串
     private String getServiceAddress(InetSocketAddress serverAddress) {
@@ -87,7 +117,7 @@ public class ZKServiceCenter implements ServiceCenter{
     }
     // 字符串解析为地址
     private InetSocketAddress parseAddress(String address) {
-        String[] result = address.split(":");
+        String[] result = address.split("-")[0].split(":");
         return new InetSocketAddress(result[0], Integer.parseInt(result[1]));
     }
 }

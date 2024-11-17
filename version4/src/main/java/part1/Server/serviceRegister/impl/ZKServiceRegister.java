@@ -1,18 +1,21 @@
 package part1.Server.serviceRegister.impl;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.zookeeper.CreateMode;
+import org.springframework.core.annotation.AnnotationUtils;
+import part1.Server.integration.RpcService;
 import part1.Server.serviceRegister.ServiceRegister;
 
 import java.net.InetSocketAddress;
 /**
- * @author wxx
  * @version 1.0
  * @create 2024/5/3 17:28
  */
+@Slf4j
 public class ZKServiceRegister implements ServiceRegister {
     // curator 提供的zookeeper客户端
     private CuratorFramework client;
@@ -31,7 +34,7 @@ public class ZKServiceRegister implements ServiceRegister {
         this.client = CuratorFrameworkFactory.builder().connectString("127.0.0.1:2181")
                 .sessionTimeoutMs(40000).retryPolicy(policy).namespace(ROOT_PATH).build();
         this.client.start();
-        System.out.println("zookeeper 连接成功");
+        log.info("zookeeper 连接成功");
     }
     //注册服务到注册中心
     @Override
@@ -46,12 +49,34 @@ public class ZKServiceRegister implements ServiceRegister {
             // 临时节点，服务器下线就删除节点
             client.create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL).forPath(path);
             //如果这个服务是幂等性，就增加到节点中
-            if (canRetry){
+            // 取消RETRY节点，将幂等性等信息存到服务节点中
+//            if (canRetry){
+//                path ="/"+RETRY+"/"+serviceName;
+//                client.create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL).forPath(path);
+//            }
+        } catch (Exception e) {
+            log.info(serviceName+"此服务已存在");
+        }
+    }
+
+    @Override
+    public void register(String serviceName, InetSocketAddress serviceAddress,RpcService rpcService) {
+        try {
+            // serviceName创建成永久节点，服务提供者下线时，不删服务名，只删地址
+            if(client.checkExists().forPath("/" + serviceName) == null){
+                client.create().creatingParentsIfNeeded().withMode(CreateMode.PERSISTENT).forPath("/" + serviceName);
+            }
+            // 路径地址，一个/代表一个节点
+            String path = "/" + serviceName +"/"+ getServiceAddress(serviceAddress) + "-"+ AnnotationUtils.getAnnotationAttributes(rpcService);;
+            // 临时节点，服务器下线就删除节点
+            client.create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL).forPath(path);
+            //如果这个服务是幂等性，就增加到节点中
+            if (rpcService.canRetry()){
                 path ="/"+RETRY+"/"+serviceName;
                 client.create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL).forPath(path);
             }
         } catch (Exception e) {
-            System.out.println("此服务已存在");
+            log.info(serviceName+"此服务已存在");
         }
     }
     // 地址 -> XXX.XXX.XXX.XXX:port 字符串

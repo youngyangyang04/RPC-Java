@@ -14,12 +14,11 @@ import java.lang.reflect.Method;
 import java.net.Socket;
 
 /**
- * @author wxx
  * @version 1.0
  * @create 2024/2/14 17:39
  */
 @AllArgsConstructor
-public class WorkThread implements Runnable{
+public class WorkThread implements Runnable {
     private Socket socket;
     private ServiceProvider serviceProvide;
     @Override

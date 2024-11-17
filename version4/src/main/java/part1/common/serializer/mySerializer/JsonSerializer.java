@@ -6,7 +6,6 @@ import part1.common.Message.RpcRequest;
 import part1.common.Message.RpcResponse;
 
 /**
- * @author wxx
  * @version 1.0
  * @create 2024/6/2 22:31
  */

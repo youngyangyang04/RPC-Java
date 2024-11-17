@@ -5,11 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * @author wxx
- * @version 1.0
- * @create 2024/6/4 0:57
- */
+
 public class serviceCache {
     //key: serviceName 服务名
     //value： addressList 服务提供者列表
@@ -21,7 +17,7 @@ public class serviceCache {
             List<String> addressList = cache.get(serviceName);
             addressList.add(address);
             System.out.println("将name为"+serviceName+"和地址为"+address+"的服务添加到本地缓存中");
-        }else {
+        } else{
             List<String> addressList=new ArrayList<>();
             addressList.add(address);
             cache.put(serviceName,addressList);
