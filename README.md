@@ -205,11 +205,16 @@
 
 
 
+# 版本五
 
+- 添加Hessian、protostuff、kryo等序列化方式
+- 优化了服务端的关闭
+- 配置顶
+- SPI机制
+
+![](assets/image.png)
 
 # TodoList
-
-- [ ] 补充其它序列化方式（如ProtoBuf，Hessian）
 
 - [ ] 集成Spring
 
