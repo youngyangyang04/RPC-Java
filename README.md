@@ -210,7 +210,7 @@
 - 新增kryo、Hessian、protostuff等序列化方式
 - 优化关闭方法
 
-![](assets/image.png)
+![](README.assets/image.png)
 
 
 
