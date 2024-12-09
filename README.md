@@ -203,20 +203,22 @@
 
 ![1720376759165](README.assets/1720376759165.png)
 
-
-
 # 版本五
 
-- 添加Hessian、protostuff、kryo等序列化方式
-- 优化了服务端的关闭
-- 配置顶
 - SPI机制
+- 配置顶
+- 新增kryo、Hessian、protostuff等序列化方式
+- 优化关闭方法
 
 ![](assets/image.png)
 
+
+
+
+
 # TodoList
 
-- [ ] 集成Spring
+- [ ] 使用注解注册服务，消费服务
 
 - [ ] 主动下线失败次数过多的节点
 
