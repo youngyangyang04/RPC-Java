@@ -16,7 +16,7 @@ public class serviceCache {
     private static Map<String, List<String>> cache=new HashMap<>();
 
     //添加服务
-    public void addServcieToCache(String serviceName,String address){
+    public void addServiceToCache(String serviceName, String address){
         if(cache.containsKey(serviceName)){
             List<String> addressList = cache.get(serviceName);
             addressList.add(address);
