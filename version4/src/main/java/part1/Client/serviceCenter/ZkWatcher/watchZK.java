@@ -1,5 +1,6 @@
 package part1.Client.serviceCenter.ZkWatcher;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.ChildData;
 import org.apache.curator.framework.recipes.cache.CuratorCache;
@@ -11,6 +12,7 @@ import part1.Client.cache.serviceCache;
  * @version 1.0
  * @create 2024/6/4 1:00
  */
+@Slf4j
 public class watchZK {
     // curator 提供的zookeeper客户端
     private CuratorFramework client;
@@ -44,9 +46,10 @@ public class watchZK {
                         if(pathList.length<=2) break;
                         else {
                             String serviceName=pathList[1];
-                            String address=pathList[2];
+                            String address=pathList[2].split("-")[0];
                             //将新注册的服务加入到本地缓存中
-                            cache.addServcieToCache(serviceName,address);
+                            cache.addServiceToCache(serviceName,address);
+                            log.info("节点监听-添加，路径集合:{}服务名:{}地址:{}",pathList,serviceName,address);
                         }
                         break;
                     case "NODE_CHANGED": // 节点更新
@@ -66,7 +69,7 @@ public class watchZK {
                         else {
                             String serviceName=pathList_d[1];
                             String address=pathList_d[2];
-                            //将新注册的服务加入到本地缓存中
+                            //将删除的服务从本地缓存中删除
                             cache.delete(serviceName,address);
                         }
                         break;
