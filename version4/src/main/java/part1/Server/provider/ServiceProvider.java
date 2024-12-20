@@ -1,5 +1,7 @@
 package part1.Server.provider;
 
+import lombok.extern.slf4j.Slf4j;
+import part1.Server.integration.RpcService;
 import part1.Server.ratelimit.provider.RateLimitProvider;
 import part1.Server.serviceRegister.impl.ZKServiceRegister;
 import part1.Server.serviceRegister.ServiceRegister;
@@ -13,6 +15,7 @@ import java.util.Map;
  * @version 1.0
  * @create 2024/2/16 17:35
  */
+@Slf4j
 public class ServiceProvider {
     private Map<String,Object> interfaceProvider;
 
@@ -31,15 +34,18 @@ public class ServiceProvider {
         this.rateLimitProvider=new RateLimitProvider();
     }
 
-    public void provideServiceInterface(Object service,boolean canRetry){
+    public void provideServiceInterface(Object service, RpcService rpcService){
         String serviceName=service.getClass().getName();
         Class<?>[] interfaceName=service.getClass().getInterfaces();
-
+        String version = rpcService.version();
+        boolean canRetry = rpcService.canRetry();
         for (Class<?> clazz:interfaceName){
-            //本机的映射表
-            interfaceProvider.put(clazz.getName(),service);
-            //在注册中心注册服务
-            serviceRegister.register(clazz.getName(),new InetSocketAddress(host,port),canRetry);
+            String serviceAndVersion = clazz.getName() + "." + version;
+            //本机的映射表（接口名+版本号 : 实现类）
+            interfaceProvider.put(serviceAndVersion,service);
+            log.info("本机映射表存储{}:{}", serviceAndVersion,service);
+            //在注册中心注册服务 （注册中心是用于注册 服务——服务地址，是用来给客户端返回服务地址的）
+            serviceRegister.register(serviceAndVersion,new InetSocketAddress(host,port),rpcService);
         }
     }
 
