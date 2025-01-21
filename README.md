@@ -11,11 +11,9 @@
 安装参考：
 
 [【Zookeeper】Windows下安装Zookeeper（图文记录详细步骤，手把手包安装成功）_windows安装zk-CSDN博客](https://blog.csdn.net/tttzzzqqq2018/article/details/132093374?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522172149339116800211548359%2522%252C%2522scm%2522%253A%252220140713.130102334)
+运行zookeeper:以管理员权限打开命令窗口，输入：zkServer.以管理员权限打开命令窗口，输入：zkCli.
 
-2.前四个版本
-运行Server包下的TestServer,再运行Client包下的TestClient
-后续版本
-先运行ProviderTest,再运行ConsumerTest
+2.前四个版本，运行Server包下的TestServer,再运行Client包下的TestClient。后续版本，先运行ProviderTest,再运行ConsumerTest。
 
 
 # RPC概念
