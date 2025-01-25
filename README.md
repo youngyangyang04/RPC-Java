@@ -13,9 +13,89 @@
 [【Zookeeper】Windows下安装Zookeeper（图文记录详细步骤，手把手包安装成功）_windows安装zk-CSDN博客](https://blog.csdn.net/tttzzzqqq2018/article/details/132093374?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522172149339116800211548359%2522%252C%2522scm%2522%253A%252220140713.130102334)
 
 2.前四个版本
-运行Server包下的TestServer,再运行Client包下的TestClient
+运行Server包下的TestServer,再运行Client包下的TestClient。
 后续版本
-先运行ProviderTest,再运行ConsumerTest
+先运行ProviderTest,再运行ConsumerTest。
+
+windows命令行启动方式如下：
+
+Mac/Linux环境以及常见问题在星球文档中
+
+### 1. 检查Java版本
+
+```bash
+java -version
+```
+
+确保输出显示的是JDK 17或更高版本。如果不是，需要：
+
+Windows环境：
+
+- 设置JAVA_HOME环境变量指向JDK 17安装目录（例如：D:\software\JDK17）
+- 将JDK 17的bin目录添加到PATH环境变量
+
+### 2. 检查Maven版本
+
+```bash
+mvn -v
+```
+
+确保Maven版本在3.6以上。
+
+### 3. 检查ZooKeeper服务
+
+#### Windows环境：
+
+1. 下载并解压ZooKeeper
+2. 重命名 zoo_sample.cfg 为 zoo.cfg
+3. 启动：
+
+```bash
+bin\zkServer.cmd
+```
+
+## 项目编译
+
+### 1. 清理并编译项目
+
+Windows环境：
+
+进入你存放rpc的目录下
+
+```bash
+cd D:\java_stduy\version5
+mvn clean install -DskipTests
+```
+
+### 2. 检查编译结果
+
+确保以下目录中存在对应的jar包：
+
+- krpc-api/target/krpc-api-1.0-SNAPSHOT.jar
+- krpc-common/target/krpc-common-1.0-SNAPSHOT.jar
+- krpc-core/target/krpc-core-1.0-SNAPSHOT.jar
+- krpc-provider/target/krpc-provider-1.0-SNAPSHOT.jar
+- krpc-consumer/target/krpc-consumer-1.0-SNAPSHOT.jar
+
+## 启动服务
+
+### 1. 启动服务提供者（Provider）
+
+Windows环境：
+
+```bash
+cd D:\java_stduy\version5\krpc-provider
+D:\software\JDK17\bin\java -cp "target\krpc-provider-1.0-SNAPSHOT.jar;target\lib\*" com.kama.provider.ProviderTest
+```
+
+### 2.启动服务消费者（Consumer）
+
+Windows环境：
+
+```
+cd D:\java_stduy\version5\krpc-consumer
+D:\software\JDK17\bin\java -cp "target\krpc-consumer-1.0-SNAPSHOT.jar;target\lib\*" com.kama.consumer.ConsumerTest
+```
 
 
 # RPC概念
