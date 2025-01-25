@@ -64,20 +64,21 @@ public class ZKServiceCenter implements ServiceCenter{
         return null;
     }
     //
-    public boolean checkRetry(String serviceName) {
-        boolean canRetry =false;
+    @Override
+    public boolean checkRetry(String methodSignature) {
         try {
-            List<String> serviceList = client.getChildren().forPath("/" + RETRY);
-            for(String s:serviceList){
-                if(s.equals(serviceName)){
-                    System.out.println("服务"+serviceName+"在白名单上，可进行重试");
-                    canRetry=true;
+            CuratorFramework rootClient = client.usingNamespace(RETRY);
+            List<String> retryableMethods = rootClient.getChildren().forPath("/");
+            for(String s : retryableMethods){
+                if(s.equals(methodSignature)){
+                    System.out.println("方法" + methodSignature + "在白名单上，可进行重试");
+                    return true;
                 }
             }
-        }catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
-        return canRetry;
+        return false;
     }
     // 地址 -> XXX.XXX.XXX.XXX:port 字符串
     private String getServiceAddress(InetSocketAddress serverAddress) {

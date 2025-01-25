@@ -48,13 +48,12 @@ public class ClientProxy implements InvocationHandler {
             return null;
         }
         //数据传输
-        RpcResponse response;
-        //后续添加逻辑：为保持幂等性，只对白名单上的服务进行重试
-        if (serviceCenter.checkRetry(request.getInterfaceName())){
-            //调用retry框架进行重试操作
+        String methodSignature = getMethodSignature(request.getInterfaceName(), method);
+        System.out.println("方法签名: " + methodSignature);
+        RpcResponse response = null;
+        if(serviceCenter.checkRetry(methodSignature)){
             response = new guavaRetry().sendServiceWithRetry(request, rpcClient);
-        }else {
-            //只调用一次
+        } else {
             response= rpcClient.sendRequest(request);
         }
         //记录response的状态，上报给熔断器
@@ -69,5 +68,20 @@ public class ClientProxy implements InvocationHandler {
      public <T>T getProxy(Class<T> clazz){
         Object o = Proxy.newProxyInstance(clazz.getClassLoader(), new Class[]{clazz}, this);
         return (T)o;
+    }
+    // 根据接口名字和方法获取方法签名
+    private String getMethodSignature(String interfaceName, Method method) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(interfaceName).append("#").append(method.getName()).append("(");
+        Class<?>[] parameterTypes = method.getParameterTypes();
+        for (int i = 0; i < parameterTypes.length; i++) {
+            sb.append(parameterTypes[i].getName());
+            if (i < parameterTypes.length - 1) {
+                sb.append(",");
+            } else{
+                sb.append(")");
+            }
+        }
+        return sb.toString();
     }
 }

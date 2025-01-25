@@ -1,5 +1,6 @@
 package com.kama.server.serviceRegister.impl;
 
+import com.kama.annotation.Retryable;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
@@ -10,7 +11,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.kama.server.serviceRegister.ServiceRegister;
 
+import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @ClassName ZKServiceRegister
@@ -38,7 +42,8 @@ public class ZKServiceRegister implements ServiceRegister {
     }
 
     @Override
-    public void register(String serviceName, InetSocketAddress serviceAddress, boolean canRetry) {
+    public void register(Class<?> clazz, InetSocketAddress serviceAddress) {
+        String serviceName = clazz.getName();
         try {
             if (client.checkExists().forPath("/" + serviceName) == null) {
                 client.create().creatingParentsIfNeeded().withMode(CreateMode.PERSISTENT).forPath("/" + serviceName);
@@ -53,10 +58,12 @@ public class ZKServiceRegister implements ServiceRegister {
                 log.info("服务地址 {} 已经存在，跳过注册", path);
             }
 
-            if (canRetry) {
-                path = "/" + RETRY + "/" + serviceName;
-                client.create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL).forPath(path);
-                log.info("重试标识 {} 注册成功", path);
+            //将当前接口中所有幂等的方法增加到节点中
+            List<String> retryableMethods = getRetryableMethod(clazz);
+            CuratorFramework rootClient = client.usingNamespace(RETRY);
+            for (String retryableMethod : retryableMethods) {
+                rootClient.create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL).forPath("/" + retryableMethod);
+                log.info("重试标识 {} 注册成功", retryableMethod);
             }
         } catch (Exception e) {
             log.error("服务注册失败，服务名：{}，错误信息：{}", serviceName, e.getMessage(), e);
@@ -70,5 +77,33 @@ public class ZKServiceRegister implements ServiceRegister {
 
     private String getServiceAddress(InetSocketAddress serverAddress) {
         return serverAddress.getHostName() + ":" + serverAddress.getPort();
+    }
+
+    // 判断一个方法是否加了@Retryable注解
+    private List<String> getRetryableMethod(Class<?> clazz){
+        List<String> retryableMethods = new ArrayList<>();
+        for (Method method : clazz.getDeclaredMethods()) {
+            if (method.isAnnotationPresent(Retryable.class)) {
+                String methodSignature = getMethodSignature(clazz, method);
+                retryableMethods.add(methodSignature);
+            }
+        }
+        return retryableMethods;
+    }
+
+    // 获取方法签名：接口名 + 方法名 + 方法参数类型
+    private String getMethodSignature(Class<?> clazz, Method method) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(clazz.getName()).append("#").append(method.getName()).append("(");
+        Class<?>[] parameterTypes = method.getParameterTypes();
+        for (int i = 0; i < parameterTypes.length; i++) {
+            sb.append(parameterTypes[i].getName());
+            if (i < parameterTypes.length - 1) {
+                sb.append(",");
+            } else{
+                sb.append(")");
+            }
+        }
+        return sb.toString();
     }
 }

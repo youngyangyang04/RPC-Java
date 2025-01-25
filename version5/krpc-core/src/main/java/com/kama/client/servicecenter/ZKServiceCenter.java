@@ -89,20 +89,19 @@ public class ZKServiceCenter implements ServiceCenter {
     //保证线程安全使用CopyOnWriteArraySet
     private Set<String> retryServiceCache = new CopyOnWriteArraySet<>();
     //写一个白名单缓存，优化性能
-    public boolean checkRetry(String serviceName) {
+    @Override
+    public boolean checkRetry(String methodSignature) {
         // 如果缓存为空，则从 Zookeeper 中加载白名单
         if (retryServiceCache.isEmpty()) {
             try {
-                // 获取 Zookeeper 上的 /RETRY 路径下的所有子节点（服务名称）
-                List<String> serviceList = client.getChildren().forPath("/" + RETRY);
-                // 将从 Zookeeper 获取到的服务名称列表添加到缓存中
-                retryServiceCache.addAll(serviceList);
+                CuratorFramework rootClient = client.usingNamespace(RETRY);
+                List<String> retryableMethods = rootClient.getChildren().forPath("/");
+                retryServiceCache.addAll(retryableMethods);
             } catch (Exception e) {
-                log.error("检查重试失败，服务名：{}", serviceName, e);
+                log.error("检查重试失败，方法签名：{}", methodSignature, e);
             }
         }
-        // 判断服务是否在缓存的白名单中
-        return retryServiceCache.contains(serviceName);
+        return retryServiceCache.contains(methodSignature);
     }
 
     // 字符串解析为地址
