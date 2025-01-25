@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import part1.Server.integration.References;
 
 import java.io.Serializable;
 
@@ -20,6 +21,8 @@ import java.io.Serializable;
 public class RpcRequest implements Serializable {
     //服务类名，客户端只知道接口
     private String interfaceName;
+    //客户端接口注解
+    private References references;
     //调用的方法名
     private String methodName;
     //参数列表

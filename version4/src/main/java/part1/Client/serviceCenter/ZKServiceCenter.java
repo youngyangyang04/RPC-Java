@@ -7,9 +7,12 @@ import org.apache.curator.retry.ExponentialBackoffRetry;
 import part1.Client.serviceCenter.ZkWatcher.watchZK;
 import part1.Client.cache.serviceCache;
 import part1.Client.serviceCenter.balance.impl.ConsistencyHashBalance;
+import part1.common.Message.RpcRequest;
 
 import java.net.InetSocketAddress;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author wxx
@@ -64,20 +67,39 @@ public class ZKServiceCenter implements ServiceCenter{
         return null;
     }
     //
-    public boolean checkRetry(String serviceName) {
+    // TODO 是否可重试的校验修改为 从zoo节点中的注解信息获取
+    public boolean checkRetry(RpcRequest rpcRequest) {
         boolean canRetry =false;
         try {
-            List<String> serviceList = client.getChildren().forPath("/" + RETRY);
-            for(String s:serviceList){
-                if(s.equals(serviceName)){
-                    System.out.println("服务"+serviceName+"在白名单上，可进行重试");
-                    canRetry=true;
-                }
-            }
+            List<String> serviceList = client.getChildren()
+                    .forPath("/" + rpcRequest.getInterfaceName() + "." + rpcRequest.getReferences().version());
+//            for(String s:serviceList){
+//                if(s.equals(serviceName)){
+//                    log.info("服务"+serviceName+"在白名单上，可进行重试");
+//                    canRetry=true;
+//                }
+//            }
+            String serviceInfo = serviceList.get(0).split("-")[1];
+            Map<String, String> infoMap = convertStringToHashMap(serviceInfo);
+            return infoMap.get("canRetry").equals("true");
         }catch (Exception e) {
             e.printStackTrace();
         }
         return canRetry;
+    }
+    public static Map<String, String> convertStringToHashMap(String str) {
+        Map<String, String> map = new HashMap<>();
+        if (str != null && !str.isEmpty()) {
+            str = str.replace("{","").replace("}","");
+            String[] pairs = str.split(",");
+            for (String pair : pairs) {
+                String[] keyValue = pair.split("=");
+                if (keyValue.length == 2) {
+                    map.put(keyValue[0].trim(), keyValue[1].trim());
+                }
+            }
+        }
+        return map;
     }
     // 地址 -> XXX.XXX.XXX.XXX:port 字符串
     private String getServiceAddress(InetSocketAddress serverAddress) {
@@ -87,7 +109,7 @@ public class ZKServiceCenter implements ServiceCenter{
     }
     // 字符串解析为地址
     private InetSocketAddress parseAddress(String address) {
-        String[] result = address.split(":");
+        String[] result = address.split("-")[0].split(":");
         return new InetSocketAddress(result[0], Integer.parseInt(result[1]));
     }
 }

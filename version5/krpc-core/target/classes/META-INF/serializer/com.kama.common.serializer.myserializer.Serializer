@@ -1,5 +1,0 @@
-Hessian=com.kama.common.serializer.myserializer.HessianSerializer
-protobuf=com.kama.common.serializer.myserializer.ProtobufSerializer
-json=com.kama.common.serializer.myserializer.JsonSerializer
-kryo=com.kama.common.serializer.myserializer.KryoSerializer
-jdk=com.kama.common.serializer.myserializer.ObjectSerializer

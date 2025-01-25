@@ -1,5 +1,7 @@
 package part1.Server.serviceRegister;
 
+import part1.Server.integration.RpcService;
+
 import java.net.InetSocketAddress;
 
 /**
@@ -9,7 +11,8 @@ import java.net.InetSocketAddress;
  */
 // 服务注册接口
 public interface ServiceRegister {
-    //  注册：保存服务与地址。
-    void register(String serviceName, InetSocketAddress serviceAddress,boolean canRetry);
+    //  注册：保存服务与地址。 将服务信息都保存在注解中
+    //void register(String serviceName, InetSocketAddress serviceAddress,boolean canRetry);
+    void register(String serviceName, InetSocketAddress serviceAddress, RpcService rpcService);
 
 }
