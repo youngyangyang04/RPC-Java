@@ -38,7 +38,7 @@ public class ServiceProvider {
         this.rateLimitProvider = new RateLimitProvider();
     }
 
-    public void provideServiceInterface(Object service, boolean canRetry) {
+    public void provideServiceInterface(Object service) {
         String serviceName = service.getClass().getName();
         Class<?>[] interfaceName = service.getClass().getInterfaces();
 
@@ -46,7 +46,7 @@ public class ServiceProvider {
             //本机的映射表
             interfaceProvider.put(clazz.getName(), service);
             //在注册中心注册服务
-            serviceRegister.register(clazz.getName(), new InetSocketAddress(host, port), canRetry);
+            serviceRegister.register(clazz, new InetSocketAddress(host, port));
         }
     }
 

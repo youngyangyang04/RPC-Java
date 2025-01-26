@@ -31,10 +31,10 @@ public class NettyRpcClient implements RpcClient {
     private static final Bootstrap bootstrap;
     private static final EventLoopGroup eventLoopGroup;
 
-    private ServiceCenter serviceCenter;
+    private final InetSocketAddress address;
 
-    public NettyRpcClient(ServiceCenter serviceCenter) throws InterruptedException {
-        this.serviceCenter = serviceCenter;
+    public NettyRpcClient(InetSocketAddress serviceAddress) {
+        this.address = serviceAddress;
     }
 
     //netty客户端初始化
@@ -48,7 +48,6 @@ public class NettyRpcClient implements RpcClient {
     @Override
     public RpcResponse sendRequest(RpcRequest request) {
         //从注册中心获取host,post
-        InetSocketAddress address = serviceCenter.serviceDiscovery(request.getInterfaceName());
         if (address == null) {
             log.error("服务发现失败，返回的地址为 null");
             return RpcResponse.fail("服务发现失败，地址为 null");

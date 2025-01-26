@@ -16,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.net.InetSocketAddress;
 
 /**
  * @ClassName ClientProxy
@@ -34,7 +35,6 @@ public class ClientProxy implements InvocationHandler {
 
     public ClientProxy() throws InterruptedException {
         serviceCenter = new ZKServiceCenter();
-        rpcClient = new NettyRpcClient(serviceCenter);
         circuitBreakerProvider = new CircuitBreakerProvider();
     }
 
@@ -58,13 +58,17 @@ public class ClientProxy implements InvocationHandler {
         RpcResponse response;
         //后续添加逻辑：为保持幂等性，只对白名单上的服务进行重试
         // 如果启用重试机制，先检查是否需要重试
-        if (serviceCenter.checkRetry(request.getInterfaceName())) {
+        String methodSignature = getMethodSignature(request.getInterfaceName(), method);
+        log.info("方法签名: " + methodSignature);
+        InetSocketAddress serviceAddress = serviceCenter.serviceDiscovery(request);
+        rpcClient = new NettyRpcClient(serviceAddress);
+        if (serviceCenter.checkRetry(serviceAddress, methodSignature)) {
             //调用retry框架进行重试操作
             try {
-                log.info("尝试重试调用服务: {}", request.getInterfaceName());
+                log.info("尝试重试调用服务: {}", methodSignature);
                 response = new GuavaRetry().sendServiceWithRetry(request, rpcClient);
             } catch (Exception e) {
-                log.error("重试调用失败: {}", request.getInterfaceName(), e);
+                log.error("重试调用失败: {}", methodSignature, e);
                 circuitBreaker.recordFailure();
                 throw e;  // 将异常抛给调用者
             }
@@ -88,5 +92,21 @@ public class ClientProxy implements InvocationHandler {
     public <T> T getProxy(Class<T> clazz) {
         Object o = Proxy.newProxyInstance(clazz.getClassLoader(), new Class[]{clazz}, this);
         return (T) o;
+    }
+
+    // 根据接口名字和方法获取方法签名
+    private String getMethodSignature(String interfaceName, Method method) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(interfaceName).append("#").append(method.getName()).append("(");
+        Class<?>[] parameterTypes = method.getParameterTypes();
+        for (int i = 0; i < parameterTypes.length; i++) {
+            sb.append(parameterTypes[i].getName());
+            if (i < parameterTypes.length - 1) {
+                sb.append(",");
+            } else{
+                sb.append(")");
+            }
+        }
+        return sb.toString();
     }
 }
