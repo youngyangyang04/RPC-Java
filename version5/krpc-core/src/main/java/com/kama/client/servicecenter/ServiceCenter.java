@@ -1,6 +1,8 @@
 package com.kama.client.servicecenter;
 
 
+import common.message.RpcRequest;
+
 import java.net.InetSocketAddress;
 
 /**
@@ -13,8 +15,8 @@ import java.net.InetSocketAddress;
 
 public interface ServiceCenter {
     //  查询：根据服务名查找地址
-    InetSocketAddress serviceDiscovery(String serviceName);
+    InetSocketAddress serviceDiscovery(RpcRequest request);
 
     //判断是否可重试
-    boolean checkRetry(String serviceName);
+    boolean checkRetry(InetSocketAddress serviceAddress, String methodSignature);
 }

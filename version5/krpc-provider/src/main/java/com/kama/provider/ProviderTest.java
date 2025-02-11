@@ -20,16 +20,18 @@ public class ProviderTest {
 
     public static void main(String[] args) throws InterruptedException {
         KRpcApplication.initialize();
+        String ip = System.getProperty("ip");
+        int port = Integer.parseInt(System.getProperty("port"));
         // 创建 UserService 实例
         UserService userService = new UserServiceImpl();
-        ServiceProvider serviceProvider = new ServiceProvider("127.0.0.1", 9999);
+        ServiceProvider serviceProvider = new ServiceProvider(ip, port);
         // 发布服务接口到 ServiceProvider
-        serviceProvider.provideServiceInterface(userService, true);  // 可以设置是否支持重试
+        serviceProvider.provideServiceInterface(userService);  // 可以设置是否支持重试
 
         // 启动 RPC 服务器并监听端口
         RpcServer rpcServer = new NettyRpcServer(serviceProvider);
-        rpcServer.start(9999);  // 启动 Netty RPC 服务，监听 9999 端口
-        log.info("RPC 服务端启动，监听端口 9999");
+        rpcServer.start(port);  // 启动 Netty RPC 服务，监听 port 端口
+        log.info("RPC 服务端启动，监听端口" + port);
     }
 
 }

@@ -53,7 +53,7 @@ public class JsonSerializer implements Serializer {
                 }
                 Class<?> dataType = response.getDataType();
                 //判断转化后的response对象中的data的类型是否正确
-                if(!dataType.isAssignableFrom(response.getData().getClass())){
+                if(response.getData() != null && !dataType.isAssignableFrom(response.getData().getClass())){
                     response.setData(JSONObject.toJavaObject((JSONObject) response.getData(),dataType));
                 }
                 obj = response;

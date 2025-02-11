@@ -4,7 +4,7 @@ import com.kama.client.cache.ServiceCache;
 import com.kama.client.servicecenter.ZKWatcher.watchZK;
 import com.kama.client.servicecenter.balance.LoadBalance;
 import com.kama.client.servicecenter.balance.impl.ConsistencyHashBalance;
-import com.kama.client.servicecenter.balance.impl.RandomLoadBalance;
+import common.message.RpcRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
@@ -57,7 +57,8 @@ public class ZKServiceCenter implements ServiceCenter {
 
     //根据服务名（接口名）返回地址
     @Override
-    public InetSocketAddress serviceDiscovery(String serviceName) {
+    public InetSocketAddress serviceDiscovery(RpcRequest request) {
+        String serviceName = request.getInterfaceName();
         try {
             //先从本地缓存中找
             List<String> addressList = cache.getServiceListFromCache(serviceName);
@@ -89,20 +90,23 @@ public class ZKServiceCenter implements ServiceCenter {
     //保证线程安全使用CopyOnWriteArraySet
     private Set<String> retryServiceCache = new CopyOnWriteArraySet<>();
     //写一个白名单缓存，优化性能
-    public boolean checkRetry(String serviceName) {
-        // 如果缓存为空，则从 Zookeeper 中加载白名单
+    @Override
+    public boolean checkRetry(InetSocketAddress serviceAddress, String methodSignature) {
         if (retryServiceCache.isEmpty()) {
             try {
-                // 获取 Zookeeper 上的 /RETRY 路径下的所有子节点（服务名称）
-                List<String> serviceList = client.getChildren().forPath("/" + RETRY);
-                // 将从 Zookeeper 获取到的服务名称列表添加到缓存中
-                retryServiceCache.addAll(serviceList);
+                CuratorFramework rootClient = client.usingNamespace(RETRY);
+                List<String> retryableMethods = rootClient.getChildren().forPath("/" + getServiceAddress(serviceAddress));
+                retryServiceCache.addAll(retryableMethods);
             } catch (Exception e) {
-                log.error("检查重试失败，服务名：{}", serviceName, e);
+                log.error("检查重试失败，方法签名：{}", methodSignature, e);
             }
         }
-        // 判断服务是否在缓存的白名单中
-        return retryServiceCache.contains(serviceName);
+        return retryServiceCache.contains(methodSignature);
+    }
+
+    // 将InetSocketAddress解析为格式为ip:port的字符串
+    private String getServiceAddress(InetSocketAddress serverAddress){
+        return serverAddress.getHostName() + ":" + serverAddress.getPort();
     }
 
     // 字符串解析为地址
