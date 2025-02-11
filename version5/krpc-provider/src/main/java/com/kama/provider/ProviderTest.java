@@ -20,8 +20,8 @@ public class ProviderTest {
 
     public static void main(String[] args) throws InterruptedException {
         KRpcApplication.initialize();
-        String ip = System.getProperty("ip");
-        int port = Integer.parseInt(System.getProperty("port"));
+        String ip=KRpcApplication.getRpcConfig().getHost();
+        int port=KRpcApplication.getRpcConfig().getPort();
         // 创建 UserService 实例
         UserService userService = new UserServiceImpl();
         ServiceProvider serviceProvider = new ServiceProvider(ip, port);
