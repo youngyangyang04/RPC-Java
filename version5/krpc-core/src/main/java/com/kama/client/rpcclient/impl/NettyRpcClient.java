@@ -68,7 +68,6 @@ public class NettyRpcClient implements RpcClient {
             // 其它场景也可以选择添加监听器的方式来异步获取结果 channelFuture.addListener...
             AttributeKey<RpcResponse> key = AttributeKey.valueOf("RPCResponse");
             RpcResponse response = channel.attr(key).get();
-
             if (response == null) {
                 log.error("服务响应为空，可能是请求失败或超时");
                 return RpcResponse.fail("服务响应为空");
@@ -82,14 +81,13 @@ public class NettyRpcClient implements RpcClient {
         } catch (Exception e) {
             log.error("发送请求时发生异常: {}", e.getMessage(), e);
         } finally {
-            // 连接断开后，优雅地关闭 Netty 资源
-            shutdown();
+            //
         }
         return RpcResponse.fail("请求失败");
     }
 
     // 优雅关闭 Netty 资源
-    private void shutdown() {
+    public void close() {
         try {
             if (eventLoopGroup != null) {
                 eventLoopGroup.shutdownGracefully().sync();

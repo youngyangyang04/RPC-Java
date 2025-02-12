@@ -104,6 +104,11 @@ public class ZKServiceCenter implements ServiceCenter {
         return retryServiceCache.contains(methodSignature);
     }
 
+    @Override
+    public void close() {
+        client.close();
+    }
+
     // 将InetSocketAddress解析为格式为ip:port的字符串
     private String getServiceAddress(InetSocketAddress serverAddress){
         return serverAddress.getHostName() + ":" + serverAddress.getPort();

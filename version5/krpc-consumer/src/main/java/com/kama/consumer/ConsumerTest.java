@@ -61,6 +61,7 @@ public class ConsumerTest {
 
         // Gracefully shutdown the executor service
         executorService.shutdown();
+        clientProxy.close();
     }
 
 }

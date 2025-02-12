@@ -109,4 +109,11 @@ public class ClientProxy implements InvocationHandler {
         }
         return sb.toString();
     }
+
+    //关闭创建的资源
+    //注：如果在需要C-S保持长连接的场景下无需调用close方法
+    public void close(){
+        rpcClient.close();
+        serviceCenter.close();
+    }
 }

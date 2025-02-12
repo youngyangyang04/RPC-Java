@@ -19,4 +19,7 @@ public interface ServiceCenter {
 
     //判断是否可重试
     boolean checkRetry(InetSocketAddress serviceAddress, String methodSignature);
+
+    //关闭客户端
+    void close();
 }
