@@ -295,6 +295,9 @@ D:\software\JDK17\bin\java -cp "target\krpc-consumer-1.0-SNAPSHOT.jar;target\lib
 
 # TodoList
 
+- [ ] **分布式日志链路追踪**
+- [ ] **数据传输压缩加密认证**
+
 - [ ] 使用注解注册服务，消费服务
 
 - [ ] 主动下线失败次数过多的节点
