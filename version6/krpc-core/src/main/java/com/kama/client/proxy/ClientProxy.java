@@ -7,8 +7,10 @@ import com.kama.client.rpcclient.RpcClient;
 import com.kama.client.rpcclient.impl.NettyRpcClient;
 import com.kama.client.servicecenter.ServiceCenter;
 import com.kama.client.servicecenter.ZKServiceCenter;
+import com.kama.trace.interceptor.ClientTraceInterceptor;
 import common.message.RpcRequest;
 import common.message.RpcResponse;
+import common.trace.TraceContext;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.InvocationHandler;
@@ -39,6 +41,9 @@ public class ClientProxy implements InvocationHandler {
     //jdk动态代理，每一次代理对象调用方法，都会经过此方法增强（反射获取request对象，socket发送到服务端）
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+        //trace记录
+        ClientTraceInterceptor.beforeInvoke();
+        //System.out.println(TraceContext.getTraceId() +";"+ TraceContext.getSpanId());
         //构建request
         RpcRequest request = RpcRequest.builder()
                 .interfaceName(method.getDeclaringClass().getName())
@@ -83,6 +88,8 @@ public class ClientProxy implements InvocationHandler {
             }
             log.info("收到响应: {} 状态码: {}", request.getInterfaceName(), response.getCode());
         }
+        //trace上报
+        ClientTraceInterceptor.afterInvoke(method.getName());
 
         return response != null ? response.getData() : null;
     }

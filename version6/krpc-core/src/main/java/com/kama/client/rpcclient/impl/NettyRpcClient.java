@@ -1,9 +1,11 @@
 package com.kama.client.rpcclient.impl;
 
+import com.kama.client.netty.MDCChannelHandler;
 import com.kama.client.netty.NettyClientInitializer;
 import com.kama.client.rpcclient.RpcClient;
 import common.message.RpcRequest;
 import common.message.RpcResponse;
+import common.trace.TraceContext;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -12,8 +14,10 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.util.AttributeKey;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.MDC;
 
 import java.net.InetSocketAddress;
+import java.util.Map;
 
 /**
  * @ClassName NettyRpcClient
@@ -44,6 +48,7 @@ public class NettyRpcClient implements RpcClient {
 
     @Override
     public RpcResponse sendRequest(RpcRequest request) {
+        Map<String,String> mdcContextMap=TraceContext.getCopy();
         //从注册中心获取host,post
         if (address == null) {
             log.error("服务发现失败，返回的地址为 null");
@@ -55,6 +60,9 @@ public class NettyRpcClient implements RpcClient {
             // 连接到远程服务
             ChannelFuture channelFuture = bootstrap.connect(host, port).sync();
             Channel channel = channelFuture.channel();
+            // 将当前Trace上下文保存到Channel属性
+            channel.attr(MDCChannelHandler.TRACE_CONTEXT_KEY).set(mdcContextMap);
+
             // 发送数据
             channel.writeAndFlush(request);
             //sync()堵塞获取结果

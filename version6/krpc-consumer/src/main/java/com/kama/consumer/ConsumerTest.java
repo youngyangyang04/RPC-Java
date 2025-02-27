@@ -18,7 +18,7 @@ import java.util.concurrent.Executors;
 @Slf4j
 public class ConsumerTest {
 
-    private static final int THREAD_POOL_SIZE = 20;
+    private static final int THREAD_POOL_SIZE = 30;
     private static final ExecutorService executorService = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
 
     public static void main(String[] args) throws InterruptedException {
