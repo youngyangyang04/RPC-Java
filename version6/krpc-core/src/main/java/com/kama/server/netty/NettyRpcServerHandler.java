@@ -4,6 +4,7 @@ package com.kama.server.netty;
 import com.kama.server.provider.ServiceProvider;
 import com.kama.server.ratelimit.RateLimit;
 import com.kama.trace.interceptor.ServerTraceInterceptor;
+import common.message.RequestType;
 import common.message.RpcRequest;
 import common.message.RpcResponse;
 import io.netty.channel.ChannelFutureListener;
@@ -34,16 +35,22 @@ public class NettyRpcServerHandler extends SimpleChannelInboundHandler<RpcReques
             log.error("接收到非法请求，RpcRequest 为空");
             return;
         }
-        //trace记录
-        ServerTraceInterceptor.beforeHandle();
+        if(request.getType() == RequestType.HEARTBEAT){
+            log.info("接收到来自客户端的心跳包");
+            return;
+        }
+        if(request.getType() == RequestType.NORMAL) {
+            //trace记录
+            ServerTraceInterceptor.beforeHandle();
 
-        RpcResponse response = getResponse(request);
-        //ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
+            RpcResponse response = getResponse(request);
+            //ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
 
-        //trace上报
-        ServerTraceInterceptor.afterHandle(request.getMethodName());
+            //trace上报
+            ServerTraceInterceptor.afterHandle(request.getMethodName());
 
-        ctx.writeAndFlush(response);
+            ctx.writeAndFlush(response);
+        }
     }
 
     @Override

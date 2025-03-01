@@ -35,9 +35,9 @@ public class NettyClientInitializer extends ChannelInitializer<SocketChannel> {
             pipeline.addLast(new MyDecoder());
             pipeline.addLast(new NettyClientHandler());
             pipeline.addLast(new MDCChannelHandler());
-            // 客户端只关注写事件，如果超过2秒没有发送数据，则发送心跳包
-            //pipeline.addLast(new IdleStateHandler(0, 2, 0, TimeUnit.SECONDS));
-            //pipeline.addLast(new HeartbeatHandler());
+            // 客户端只关注写事件，如果超过8秒没有发送数据，则发送心跳包
+            pipeline.addLast(new IdleStateHandler(0, 8, 0, TimeUnit.SECONDS));
+            pipeline.addLast(new HeartbeatHandler());
             log.info("Netty client pipeline initialized with serializer type: {}",Serializer.getSerializerByCode(3).getType());
         } catch (Exception e) {
             log.error("Error initializing Netty client pipeline", e);

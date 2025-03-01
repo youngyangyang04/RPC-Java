@@ -8,6 +8,7 @@ import com.kama.client.rpcclient.impl.NettyRpcClient;
 import com.kama.client.servicecenter.ServiceCenter;
 import com.kama.client.servicecenter.ZKServiceCenter;
 import com.kama.trace.interceptor.ClientTraceInterceptor;
+import common.message.RequestType;
 import common.message.RpcRequest;
 import common.message.RpcResponse;
 import common.trace.TraceContext;
@@ -46,6 +47,7 @@ public class ClientProxy implements InvocationHandler {
         //System.out.println(TraceContext.getTraceId() +";"+ TraceContext.getSpanId());
         //构建request
         RpcRequest request = RpcRequest.builder()
+                .type(RequestType.NORMAL)
                 .interfaceName(method.getDeclaringClass().getName())
                 .methodName(method.getName())
                 .params(args).paramsType(method.getParameterTypes()).build();
