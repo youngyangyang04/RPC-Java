@@ -47,7 +47,6 @@ public class TraceContext {
     }
     public static void clone(Map<String,String> context){
         for(Map.Entry<String,String> entry:context.entrySet()){
-            System.out.println(entry.getKey()+":"+entry.getValue());
             MDC.put(entry.getKey(),entry.getValue());
         }
     }
