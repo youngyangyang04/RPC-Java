@@ -299,7 +299,9 @@ D:\software\JDK17\bin\java -cp "target\krpc-consumer-1.0-SNAPSHOT.jar;target\lib
 - 心跳检测
 - 基于方法白名单的重试
 
-![](../../version6.jpg)
+
+
+![](README.assets/version6.jpg)
 
 
 
