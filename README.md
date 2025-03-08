@@ -293,9 +293,20 @@ D:\software\JDK17\bin\java -cp "target\krpc-consumer-1.0-SNAPSHOT.jar;target\lib
 
 
 
+# 版本六
+
+- 分布式日志链路追踪
+- 心跳检测
+- 基于方法白名单的重试
+
+![](../../version6.jpg)
+
+
+
+
+
 # TodoList
 
-- [ ] **分布式日志链路追踪**
 - [ ] **数据传输压缩加密认证**
 
 - [ ] 使用注解注册服务，消费服务
