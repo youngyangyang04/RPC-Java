@@ -22,10 +22,9 @@ public class ConsistencyHashBalance implements LoadBalance {
     private static final int VIRTUAL_NUM = 5;
 
     // 虚拟节点分配，key是hash值，value是虚拟节点服务器名称
-    private SortedMap<Integer, String> shards = new TreeMap<Integer,String>();
-
+    private SortedMap<Integer, String> shards = new ConcurrentSkipListMap<>();
     // 真实节点列表
-    private List<String> realNodes = new LinkedList<>();
+    private List<String> realNodes = new CopyOnWriteArrayList<>();
 
     // 获取虚拟节点的个数
     public static int getVirtualNum() {
@@ -53,28 +52,20 @@ public class ConsistencyHashBalance implements LoadBalance {
      * @return 负责该请求的真实节点名称
      */
     public String getServer(String node, List<String> serviceList) {
-        // 检查虚拟节点映射是否为空，如果是则初始化
         if (shards.isEmpty()) {
-            init(serviceList);  // 使用serviceList初始化虚拟节点
+            init(serviceList);  // 初始化，如果shards为空
         }
 
-        // 计算输入节点的哈希值
         int hash = getHash(node);
         Integer key = null;
 
-        // 获取大于等于当前哈希值的所有节点映射
         SortedMap<Integer, String> subMap = shards.tailMap(hash);
-
-        // 确定目标节点：
-        //    - 如果没有更大的节点，则使用第一个节点(环状结构)
-        //    - 否则使用第一个大于等于的节点
         if (subMap.isEmpty()) {
-            key = shards.firstKey();  // 环状结构处理
+            key = shards.firstKey();  // 如果没有大于该hash的节点，则返回最小的hash值
         } else {
             key = subMap.firstKey();
         }
 
-        // 5. 获取虚拟节点并返回真实节点名称
         String virtualNode = shards.get(key);
         return virtualNode.substring(0, virtualNode.indexOf("&&"));
     }
@@ -84,7 +75,7 @@ public class ConsistencyHashBalance implements LoadBalance {
      *
      * @param node 新加入的节点
      */
-    public void addNode(String node) {
+    public synchronized void addNode(String node) {
         if (!realNodes.contains(node)) {
             realNodes.add(node);
             log.info("真实节点[{}] 上线添加", node);
@@ -102,7 +93,7 @@ public class ConsistencyHashBalance implements LoadBalance {
      *
      * @param node 被移除的节点
      */
-    public void delNode(String node) {
+    public synchronized void delNode(String node) {
         if (realNodes.contains(node)) {
             realNodes.remove(node);
             log.info("真实节点[{}] 下线移除", node);
