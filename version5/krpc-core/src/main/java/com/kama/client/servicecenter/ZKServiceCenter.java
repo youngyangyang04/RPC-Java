@@ -4,6 +4,7 @@ import com.kama.client.cache.ServiceCache;
 import com.kama.client.servicecenter.ZKWatcher.watchZK;
 import com.kama.client.servicecenter.balance.LoadBalance;
 import com.kama.client.servicecenter.balance.impl.ConsistencyHashBalance;
+import com.kama.client.servicecenter.balance.impl.RandomLoadBalance;
 import common.message.RpcRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.curator.RetryPolicy;
@@ -33,7 +34,7 @@ public class ZKServiceCenter implements ServiceCenter {
     //serviceCache
     private ServiceCache cache;
 
-    private final LoadBalance loadBalance = new ConsistencyHashBalance();
+    private final LoadBalance loadBalance = new RandomLoadBalance();
 
     //负责zookeeper客户端的初始化，并与zookeeper服务端进行连接
     public ZKServiceCenter() throws InterruptedException {
@@ -50,7 +51,7 @@ public class ZKServiceCenter implements ServiceCenter {
         //初始化本地缓存
         cache = new ServiceCache();
         //加入zookeeper事件监听器
-        watchZK watcher = new watchZK(client, cache);
+        watchZK watcher = new watchZK(client, cache, loadBalance);
         //监听启动
         watcher.watchToUpdate(ROOT_PATH);
     }

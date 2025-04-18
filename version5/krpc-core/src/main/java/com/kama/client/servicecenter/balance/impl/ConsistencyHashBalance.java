@@ -53,20 +53,28 @@ public class ConsistencyHashBalance implements LoadBalance {
      * @return 负责该请求的真实节点名称
      */
     public String getServer(String node, List<String> serviceList) {
+        // 检查虚拟节点映射是否为空，如果是则初始化
         if (shards.isEmpty()) {
-            init(serviceList);  // 初始化，如果shards为空
+            init(serviceList);  // 使用serviceList初始化虚拟节点
         }
 
+        // 计算输入节点的哈希值
         int hash = getHash(node);
         Integer key = null;
 
+        // 获取大于等于当前哈希值的所有节点映射
         SortedMap<Integer, String> subMap = shards.tailMap(hash);
+
+        // 确定目标节点：
+        //    - 如果没有更大的节点，则使用第一个节点(环状结构)
+        //    - 否则使用第一个大于等于的节点
         if (subMap.isEmpty()) {
-            key = shards.firstKey();  // 如果没有大于该hash的节点，则返回最小的hash值
+            key = shards.firstKey();  // 环状结构处理
         } else {
             key = subMap.firstKey();
         }
 
+        // 5. 获取虚拟节点并返回真实节点名称
         String virtualNode = shards.get(key);
         return virtualNode.substring(0, virtualNode.indexOf("&&"));
     }
