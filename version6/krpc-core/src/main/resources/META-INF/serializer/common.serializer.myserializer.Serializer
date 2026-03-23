@@ -1,4 +1,4 @@
-Hessian=common.serializer.myserializer.HessianSerializer
+hessian=common.serializer.myserializer.HessianSerializer
 protobuf=common.serializer.myserializer.ProtostuffSerializer
 json=common.serializer.myserializer.JsonSerializer
 kryo=common.serializer.myserializer.KryoSerializer

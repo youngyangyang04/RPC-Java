@@ -17,15 +17,15 @@ public class SpiTest {
     @Test
     public void testSpi() {
         SpiLoader.loadSpi(Serializer.class);
-        Serializer serializer = (Serializer) SpiLoader.getInstance(Serializer.class, "kryo");
+        Serializer serializer = SpiLoader.getInstance(Serializer.class, "kryo");
         assertTrue("SPI 获取的实例应该是 KryoSerializer 类型", serializer instanceof KryoSerializer);
-        serializer = (Serializer) SpiLoader.getInstance(Serializer.class, "protobuf");
+        serializer = SpiLoader.getInstance(Serializer.class, "protobuf");
         assertTrue("SPI 获取的实例应该是 ProtostuffSerializer 类型", serializer instanceof ProtostuffSerializer);
-        serializer = (Serializer) SpiLoader.getInstance(Serializer.class, "json");
+        serializer = SpiLoader.getInstance(Serializer.class, "json");
         assertTrue("SPI 获取的实例应该是 JsonSerializer 类型", serializer instanceof JsonSerializer);
-        serializer = (Serializer) SpiLoader.getInstance(Serializer.class, "Hessian");
+        serializer = SpiLoader.getInstance(Serializer.class, "hessian");
         assertTrue("SPI 获取的实例应该是 HessianSerializer 类型", serializer instanceof HessianSerializer);
-        serializer = (Serializer) SpiLoader.getInstance(Serializer.class, "jdk");
+        serializer = SpiLoader.getInstance(Serializer.class, "jdk");
         assertTrue("SPI 获取的实例应该是 ObjectSerializer 类型", serializer instanceof ObjectSerializer);
     }
 }
