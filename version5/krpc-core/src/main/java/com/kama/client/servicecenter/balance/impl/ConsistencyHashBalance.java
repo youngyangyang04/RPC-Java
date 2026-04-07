@@ -22,10 +22,9 @@ public class ConsistencyHashBalance implements LoadBalance {
     private static final int VIRTUAL_NUM = 5;
 
     // 虚拟节点分配，key是hash值，value是虚拟节点服务器名称
-    private SortedMap<Integer, String> shards = new TreeMap<Integer,String>();
-
+    private SortedMap<Integer, String> shards = new ConcurrentSkipListMap<>();
     // 真实节点列表
-    private List<String> realNodes = new LinkedList<>();
+    private List<String> realNodes = new CopyOnWriteArrayList<>();
 
     // 获取虚拟节点的个数
     public static int getVirtualNum() {
@@ -76,7 +75,7 @@ public class ConsistencyHashBalance implements LoadBalance {
      *
      * @param node 新加入的节点
      */
-    public void addNode(String node) {
+    public synchronized void addNode(String node) {
         if (!realNodes.contains(node)) {
             realNodes.add(node);
             log.info("真实节点[{}] 上线添加", node);
@@ -94,7 +93,7 @@ public class ConsistencyHashBalance implements LoadBalance {
      *
      * @param node 被移除的节点
      */
-    public void delNode(String node) {
+    public synchronized void delNode(String node) {
         if (realNodes.contains(node)) {
             realNodes.remove(node);
             log.info("真实节点[{}] 下线移除", node);

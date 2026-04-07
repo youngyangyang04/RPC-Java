@@ -20,8 +20,6 @@ public class RoundLoadBalance implements LoadBalance {
     // 使用 AtomicInteger 保证线程安全
     private AtomicInteger choose = new AtomicInteger(0);
 
-    private List<String> addressList = new CopyOnWriteArrayList<>();
-
     @Override
     public String balance(List<String> addressList) {
         if (addressList == null || addressList.isEmpty()) {
@@ -38,15 +36,11 @@ public class RoundLoadBalance implements LoadBalance {
 
     @Override
     public void addNode(String node) {
-        // 如果是动态添加节点，可以将节点加入到 addressList 中
-        addressList.add(node);
         log.info("节点 {} 已加入负载均衡", node);
     }
 
     @Override
     public void delNode(String node) {
-        // 如果是动态删除节点，可以将节点从 addressList 中移除
-        addressList.remove(node);
         log.info("节点 {} 已从负载均衡中移除", node);
     }
 }

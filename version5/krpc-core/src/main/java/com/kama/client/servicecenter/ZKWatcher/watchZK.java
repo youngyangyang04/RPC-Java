@@ -1,6 +1,7 @@
 package com.kama.client.servicecenter.ZKWatcher;
 
 import com.kama.client.cache.ServiceCache;
+import com.kama.client.servicecenter.balance.LoadBalance;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.ChildData;
@@ -21,11 +22,14 @@ public class watchZK {
     private CuratorFramework client;
     //本地缓存
     ServiceCache cache;
+    //负载均衡器
+    LoadBalance loadBalance;
 
 
-    public watchZK(CuratorFramework client, ServiceCache cache) {
+    public watchZK(CuratorFramework client, ServiceCache cache, LoadBalance loadBalance) {
         this.client = client;
         this.cache = cache;
+        this.loadBalance = loadBalance;
     }
 
     /**
@@ -46,13 +50,14 @@ public class watchZK {
                 // 节点创建时没有赋予值 create /curator/app1 只创建节点，在这种情况下，更新前节点的 data 为 null，获取不到更新前节点的数据
                 switch (type.name()) {
                     case "NODE_CREATED": // 监听器第一次执行时节点存在也会触发次事件
-                        String[] pathList = pasrePath(childData1);
+                        String[] pathList = parsePath(childData1);
                         if (pathList.length <= 2) break;
                         else {
                             String serviceName = pathList[1];
                             String address = pathList[2];
-                            //将新注册的服务加入到本地缓存中
+                            //将新注册的服务加入到本地缓存中 并更新负载均衡
                             cache.addServiceToCache(serviceName, address);
+                            loadBalance.addNode(address);
                             log.info("节点创建：服务名称 {} 地址 {}", serviceName, address);
                         }
                         break;
@@ -62,19 +67,21 @@ public class watchZK {
                         } else {
                             log.debug("节点第一次赋值!");
                         }
-                        String[] oldPathList = pasrePath(childData);
-                        String[] newPathList = pasrePath(childData1);
+                        String[] oldPathList = parsePath(childData);
+                        String[] newPathList = parsePath(childData1);
                         cache.replaceServiceAddress(oldPathList[1], oldPathList[2], newPathList[2]);
+                        loadBalance.delNode(oldPathList[2]);
+                        loadBalance.addNode(newPathList[2]);
                         log.info("节点更新：服务名称 {} 地址从 {} 更新为 {}", oldPathList[1], oldPathList[2], newPathList[2]);
                         break;
                     case "NODE_DELETED": // 节点删除
-                        String[] pathList_d = pasrePath(childData);
+                        String[] pathList_d = parsePath(childData);
                         if (pathList_d.length <= 2) break;
                         else {
                             String serviceName = pathList_d[1];
                             String address = pathList_d[2];
-                            //将新注册的服务加入到本地缓存中
                             cache.delete(serviceName, address);
+                            loadBalance.delNode(address);
                             log.info("节点删除：服务名称 {} 地址 {}", serviceName, address);
                         }
                         break;
@@ -88,7 +95,7 @@ public class watchZK {
     }
 
     //解析节点对应地址
-    public String[] pasrePath(ChildData childData) {
+    public String[] parsePath(ChildData childData) {
         //获取更新的节点的路径
         String path = new String(childData.getPath());
         log.info("节点路径:{}",path);
